@@ -69,10 +69,10 @@
       <string>&amp;Add ...</string>
      </property>
      <addaction name="action_Camera_Add_ByFile"/>
+     <addaction name="action_Camera_Add_ByUserPointCalibrationDialog"/>
     </widget>
     <addaction name="menu_Add"/>
     <addaction name="action_Camera_Edit"/>
-    <addaction name="action_User_Point_Calibration"/>
    </widget>
    <widget class="QMenu" name="menu_Target">
     <property name="title">
@@ -154,9 +154,9 @@
     <string>Edit ...</string>
    </property>
   </action>
-  <action name="action_User_Point_Calibration">
+  <action name="action_Camera_Add_ByUserPointCalibrationDialog">
    <property name="text">
-    <string>&amp;User-Point Calibration</string>
+    <string>by customized-point dialog</string>
    </property>
   </action>
  </widget>

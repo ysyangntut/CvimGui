@@ -27,15 +27,15 @@ double calibrateCameraSingleImage(
               cv::Mat & dvec,
               cv::Mat & rvec,
               cv::Mat & tvec,
+              cv::Mat & stdDeviationsIntrinsics,
+              cv::Mat & stdDeviationsExtrinsics,
+              cv::Mat & perViewErrors,
                   int   flags,
        cv::TermCriteria criteria)
 {
     double rms = 0.0;
     vector<vector<cv::Point3f>> objPointsVec(1);
     vector<vector<cv::Point2f>> imgPointsVec(1);
-    cv::Mat stdDeviationsIntrinsics;
-    cv::Mat stdDeviationsExtrinsics;
-    cv::Mat perViewErrors;
 
     // conventional opencv calibration
     objPointsVec[0] = vector<cv::Point3f>(objPoints.cols * objPoints.rows);
@@ -47,25 +47,28 @@ double calibrateCameraSingleImage(
         imgPointsVec[0][i] = imgPoints.at<cv::Point2f>(i);
     }
 
-    IntrinsicCalibrator cal;
-    cal.defineUserPoints(0, imgPointsVec[0], objPointsVec[0]);
-    cal.calibrateByLevel(3);
-
-    rvec = cv::Mat::zeros(3, 1, CV_64F);
-    tvec = cv::Mat::zeros(3, 1, CV_64F);
-    cmat = cv::Mat::eye(3, 3, CV_64F);
-    cmat.at<double>(0, 0) = imgSize.width;
-    cmat.at<double>(1, 1) = imgSize.width;
-    cmat.at<double>(0, 2) = (imgSize.width - 1) * .5f;
-    cmat.at<double>(1, 2) = (imgSize.height - 1) * .5f;
-    cmat.at<double>(2, 2) = 1;
-    dvec = cv::Mat::zeros(1, 12, CV_32F);
+    // set initial guess of cmat
+    if ((flags & cv::CALIB_USE_INTRINSIC_GUESS) == 0)
+    {
+        rvec = cv::Mat::zeros(3, 1, CV_64F);
+        tvec = cv::Mat::zeros(3, 1, CV_64F);
+        cmat = cv::Mat::eye(3, 3, CV_64F);
+        cmat.at<double>(0, 0) = imgSize.width;
+        cmat.at<double>(1, 1) = imgSize.width;
+        cmat.at<double>(0, 2) = (imgSize.width - 1) * .5f;
+        cmat.at<double>(1, 2) = (imgSize.height - 1) * .5f;
+        cmat.at<double>(2, 2) = 1;
+        dvec = cv::Mat::zeros(1, 12, CV_32F);
+        flags = flags | cv::CALIB_USE_INTRINSIC_GUESS;
+        cout << "Gave a cmat initial guess for camera calibration: " << cmat << "\n";
+    }
 
     // if flag
     if (flags == 0) {
-        cout << "Warning: You gave calibration flags of all zeros.\n";
+        cout << "Warning: You gave calibration flags which are all zeros.\n";
+        cout << "         Likely you could get divergence from camera calibration.\n";
         cout.flush();
-        return 0.0;
+//        return 0.0;
     }
 
 //    dvec = dvec.t();
@@ -94,9 +97,15 @@ double calibrateCameraSingleImage(
         cout << "perViewErrors: (type: " << cmat.type() << ")\n" << perViewErrors << "\n";
         cout.flush();
     } catch ( ... ) {
-        cout << "Calibrationf flags is " << flags << "\n";
         cout << "Error: Failed to do calibration.\n";
+        cout << "  Calibrationf flags is " << flags << "\n";
+        cout << "  Change the flags and try again.\n";
         cout.flush();
     }
+
+    // start doing minimization.
+
+
+
     return rms;
 }

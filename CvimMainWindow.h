@@ -16,7 +16,9 @@ public:
     ~CvimMainWindow();
 
 private slots:
-    void on_action_User_Point_Calibration_triggered();
+//    void on_action_User_Point_Calibration_triggered();
+    void on_action_Camera_Add_ByUserPointCalibrationDialog_triggered();
+
 
 private:
     Ui::CvimMainWindow *ui;

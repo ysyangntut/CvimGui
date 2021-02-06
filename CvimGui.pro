@@ -20,10 +20,12 @@ SOURCES += \
     constrained3dPositioning.cpp \
     cvimCalibration.cpp \
     cvimUtil.cpp \
+    draw.cpp \
     enhancedCorrelationWithReference.cpp \
     generalConstrained3dPosition_newton.cpp \
     imCalibrateCameraSingleImage.cpp \
     impro_fileIO.cpp \
+    impro_strings.cpp \
     impro_util.cpp \
     main.cpp \
     matchTemplateWithRot.cpp \
@@ -51,8 +53,10 @@ HEADERS += \
     cvimCalibration.h \
     cvimUtil.h \
     cvimUtilQt.h \
+    draw.h \
     enhancedCorrelationWithReference.h \
     impro_fileIO.h \
+    impro_strings.h \
     impro_util.h \
     impro_util.h \
     matchTemplateWithRot.h \
@@ -77,14 +81,14 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 # OpenCV 4.4
-win32:CONFIG(release, debug|release): LIBS += -LC:/opencv/opencv440/opencv/build/x64/vc15/lib/ -lopencv_world440
-else:win32:CONFIG(debug, debug|release): LIBS += -LC:/opencv/opencv440/opencv/build/x64/vc15/lib/ -lopencv_world440d
-INCLUDEPATH += C:/opencv/opencv440/opencv/build/include
-DEPENDPATH += C:/opencv/opencv440/opencv/build/include
+#win32:CONFIG(release, debug|release): LIBS += -LC:/opencv/opencv440/opencv/build/x64/vc15/lib/ -lopencv_world440
+#else:win32:CONFIG(debug, debug|release): LIBS += -LC:/opencv/opencv440/opencv/build/x64/vc15/lib/ -lopencv_world440d
+#INCLUDEPATH += C:/opencv/opencv440/opencv/build/include
+#DEPENDPATH += C:/opencv/opencv440/opencv/build/include
 
 # OpenCV
-#win32:CONFIG(release, debug|release): LIBS += -LC:/opencv/opencv451x/opencv-4.5.1/build/install/x64/vc16/lib/ -lopencv_world451
-#else:win32:CONFIG(debug, debug|release): LIBS += -LC:/opencv/opencv451x/opencv-4.5.1/build/install/x64/vc16/lib/ -lopencv_world451d
-#else:unix: LIBS += -LC:/opencv/opencv451x/opencv-4.5.1/build/install/x64/vc16/lib/ -lopencv_world451
-#INCLUDEPATH += C:/opencv/opencv451x/opencv-4.5.1/build/install/include
-#DEPENDPATH += C:/opencv/opencv451x/opencv-4.5.1/build/install/include
+win32:CONFIG(release, debug|release): LIBS += -LC:/opencv/opencv451x/opencv-4.5.1/build/install/x64/vc16/lib/ -lopencv_world451
+else:win32:CONFIG(debug, debug|release): LIBS += -LC:/opencv/opencv451x/opencv-4.5.1/build/install/x64/vc16/lib/ -lopencv_world451d
+else:unix: LIBS += -LC:/opencv/opencv451x/opencv-4.5.1/build/install/x64/vc16/lib/ -lopencv_world451
+INCLUDEPATH += C:/opencv/opencv451x/opencv-4.5.1/build/install/include
+DEPENDPATH += C:/opencv/opencv451x/opencv-4.5.1/build/install/include

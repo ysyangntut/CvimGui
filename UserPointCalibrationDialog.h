@@ -2,10 +2,12 @@
 #define USERPOINTCALIBRATIONDIALOG_H
 
 #include <QDialog>
+#include <QTableWidgetItem>
 
 #include <opencv2/opencv.hpp>
 #include <string>
 #include <vector>
+
 
 namespace Ui {
 class UserPointCalibrationDialog;
@@ -20,13 +22,16 @@ public:
     ~UserPointCalibrationDialog();
 
     const int nPointsPerColinear = 4;
-    cv::Mat img;
+    cv::Mat  img;
+    cv::Mat  imgUndistort;
     std::string imgFilename;
-    cv::Mat cmat, dvec, rvec, tvec;
-    cv::Mat uImgPoints;          //!< image coord. of user defined points. (1, nPoints, CV_32FC2)
-    cv::Mat uGlobalPoints;       //!< 3D global coord. of user defined points (1, nPoints, CV_32FC3)
-    cv::Mat uColinearImgPoints;  //!< image coord. of user defined lines. (nLines, nPointsPerColinear, CV_32FC2)
-    cv::Size imgSize;            //!< image size of this camera
+    cv::Mat  cmat, dvec, rvec, tvec;
+    cv::Mat  stdDeviationsIntrinsics, stdDeviationsExtrinsics, perViewErrors;
+    cv::Mat  uImgPoints;          //!< image coord. of user defined points. (1, nPoints, CV_32FC2)
+    cv::Mat  uGlobalPoints;       //!< 3D global coord. of user defined points (1, nPoints, CV_32FC3)
+    std::vector<cv::Mat> uColinearImgPoints;  //!< image coord. of user defined lines. [nLines](1, nPointsPerColinear, CV_32FC2)
+    cv::Size imgSize;             //!< image size of this camera
+    int      flags;               //!< calibration flags
 
     QImage opencvMatToQImage(const cv::Mat & img, std::string filename = "");
 
@@ -39,13 +44,39 @@ private slots:
 
     void on_pbImshow1600_clicked();
 
-    void on_edGlobalPoints_textChanged();
+    // example: input mats as [ (xw1,yw1,zw1), (xw2, yw2, zw2), (xw3, yw3, zw3)], and [(xi1, xi2), (na, na), (xi3, yi3)]
+    // output will be
+    // [(xw1,yw1,zw1), (xw3, yw3, zw3)],
+    // [(xi1, xi2), (xi3, yi3)]
+    // , {0, 2} and {0, -1, 1}
+    void getValidObjImgPointsAndMappings(cv::Mat objPoints, cv::Mat imgPoints,
+                                         cv::Mat & validObjPoints, cv::Mat & validImgPoints,
+                                         std::vector<int> & validToAll, std::vector<int> & allToValid);
 
+    void on_edGlobalPoints_textChanged();
     void on_edImgPoints_textChanged();
+    void on_edColinearImgPoints_textChanged();
 
     void on_pbCalibrate_clicked();
 
     void on_edImgSize_textChanged();
+
+    void on_tbIntrinsic_itemSelectionChanged();
+    void on_tbExtrinsic_itemSelectionChanged();
+    void on_tbProjection_itemSelectionChanged();
+
+    void on_pbUndistort_clicked();
+
+    void getIntrinsicFromUi();
+    void getExtrinsicFromUi();
+    void getCalibrationFlagsFromUi();
+    void displayIntrinsicToUi();
+    void displayExtrinsicToUi();
+    void displayProjectionToUi();
+
+    void displayMessage(QString msg);
+
+
 
 private:
     Ui::UserPointCalibrationDialog *ui;

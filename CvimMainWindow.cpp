@@ -18,7 +18,7 @@ CvimMainWindow::~CvimMainWindow()
 }
 
 
-void CvimMainWindow::on_action_User_Point_Calibration_triggered()
+void CvimMainWindow::on_action_Camera_Add_ByUserPointCalibrationDialog_triggered()
 {
     UserPointCalibrationDialog calibDialog;
     calibDialog.setWindowTitle("Calibration by Customized Points");
