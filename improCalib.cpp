@@ -670,7 +670,7 @@ std::string saveCalibrationToFileStorage(
     if (ofs.isOpened() == false) {
         ret.append("-1\n");
         ret.append("Error: Cannot save camera parameters because of something wrong.\n");
-        ret.append("       Cannot file storage.\n");
+        ret.append("       Cannot file open storage.\n");
         std::cerr << ret;
     }
     // write image size
@@ -794,15 +794,51 @@ std::string loadCalibrationFromFileStorage(
         cv::Mat & tvec,
         cv::FileStorage & ifs)
 {
-
-
+    std::string ret;
+    // check FileStroage
+    if (ifs.isOpened() == false) {
+        ret.append("-1\n");
+        ret.append("Error: Cannot load camera parameters because of something wrong.\n");
+        ret.append("       Cannot open file storage.\n");
+        std::cerr << ret;
+    }
+    // image size
+    imgSize = cv::Size(0, 0);
+    ifs["imageSize"] >> imgSize;
+    if (imgSize.width <= 0 || imgSize.height <= 0) {
+        std::cout << "Warning: Read a nonpositive image size from FileStorage.\n";
+    }
+    // camera matrix
+    cmat = cv::Mat();
+    ifs["cameraMatrix"] >> cmat;
+    if (cmat.cols != 3 || cmat.rows != 3) {
+        std::cout << "Warning: Read an invalid camera matrix from FileStorage.\n";
+    }
+    // distortion vector
+    dvec = cv::Mat();
+    ifs["distortionVector"] >> dvec;
+    if (dvec.cols <= 0 || dvec.rows <= 0) {
+        std::cout << "Warning: Read an invalid distortion vector from FileStorage.\n";
+    }
+    // rvec
+    rvec = cv::Mat();
+    ifs["rvec"] >> rvec;
+    if (rvec.cols <= 0 || rvec.rows <= 0) {
+        std::cout << "Warning: Read an invalid rotational vector from FileStorage.\n";
+    }
+    // tvec
+    tvec = cv::Mat();
+    ifs["tvec"] >> tvec;
+    if (tvec.cols <= 0 || tvec.rows <= 0) {
+        std::cout << "Warning: Read an invalid translational vector from FileStroage.\n";
+    }
     return std::string("0");
 }
 
 /*! \brief Loads camera parameters from a file
  *
  * This function loads camera intrinsic and extrinsic parameters from a file.
- * The tags and formats are
+ * The tags and formats are:
  * <imageSize> cv::Size
  * <cameraMatrix> cv::Mat(3, 3, CV_64F)
  * <distortionVector> cv::Mat(1, nDistortCoefs, CV_64F)
@@ -827,6 +863,27 @@ std::string loadCalibrationFromFile(
         cv::Mat & tvec,
         std::string fname)
 {
-
+    std::string ret;
+    // check file
+    if (fname.length() <= 1) {
+        ret.append("-1\n");
+        ret.append("Error: Cannot load camera parameters because of something wrong.\n");
+        ret.append("       Check file path: " + fname + "\n");
+        std::cerr << ret;
+        return ret;
+    }
+    // open file storage to save
+    cv::FileStorage ifs(fname, cv::FileStorage::READ);
+    if (ifs.isOpened() == false) {
+        ret.append("-1\n");
+        ret.append("Error: Cannot load camera parameters because of something wrong.\n");
+        ret.append("       Cannot open: " + fname + " as a file storage.\n");
+        std::cerr << ret;
+    }
+    ret = loadCalibrationFromFileStorage(imgSize, cmat, dvec, rvec, tvec, ifs);
+    if (ret.compare("0") != 0) {
+        std::cerr << "Error: loadCalibrationFromFile() receives " << ret
+                  << " from loadCalibrationFromFileStorage().\n";
+    }
     return std::string("0");
 }
