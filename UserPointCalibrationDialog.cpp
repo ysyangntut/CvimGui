@@ -23,7 +23,8 @@
 
 #include "pickAPoint.h"
 #include "impro_util.h"
-#include "impro_strings.h"
+#include "improStrings.h"
+#include "improCalib.h"
 
 
 
@@ -329,9 +330,56 @@ void UserPointCalibrationDialog::on_edColinearImgPoints_textChanged()
     char buf[1000];
     // get string from widget (a long string that may contain multiple "\n")
     string fullText = this->ui->edColinearImgPoints->toPlainText().toStdString();
+    bool debug = false;
+    // ---------------------------------------------------------
+    std::vector<std::vector<float> > vvFloats;
+    std::vector<int> nvFloats, nvNanfs;
+    int nFloats, nNanfs;
+    // If fullText is "1 2 3 4 5 6 # 7 8 9 1 2 3 4 5 ", vvFloats will be
+    // vector<vector<float> > {vector<float>{1 2 3 4 5 6}, vector<float>{7 8 9 1 2 3 4 5} }
+    // nvFloats will be {6, 8}, nvNanfs will be {0, 0}
+    fromStringToVecVecFloatAcceptNaIgnoreOthers(fullText, '#', vvFloats, nvFloats, nvNanfs, nFloats, nNanfs);
+    // check validation
+    int invalidLine = -1;
+    nLines = (int) vvFloats.size();
+    for (int i = 0; i < nLines; i++) {
+        // if number of floats is even (so that it forms Point2f) without #N/A
+        if (nvFloats[i] % 2 != 0 || nvNanfs[i] != 0 || nvFloats[i] / 2 < 3) {
+            invalidLine = i;
+            break;
+        }
+    }
+    if (invalidLine >= 0) {
+        snprintf(buf, 1000, "ERR@ line %d", invalidLine + 1);
+        this->ui->lbNumColinearLinesAndPoints->setText(buf);
+        this->ui->lbNumColinearLinesAndPoints->setStyleSheet("color: red;");
+        return;
+    }
+    if (invalidLine < 0) {
+        this->uColinearImgPoints.clear();
+        this->uColinearImgPoints.resize(nLines);
+        // If vvFloats is
+        // vector<vector<float> > {vector<float>{1 2 3 4 5 6}, vector<float>{7 8 9 1 2 3 4 5} }
+        // this->uColinearImgPoints will be
+        // vector<cv::Mat>{ cv::Point2f(1, 2)
+        for (int i = 0; i < nLines; i++) {
+            cv::Mat tmp(1, nvFloats[i] / 2, CV_32FC2, vvFloats[i].data());
+            this->uColinearImgPoints[i] = tmp.clone();
+            if (debug) {
+                std::cout << "Colinear " << i + 1 << " is:\n" << tmp << "\n";
+                std::cout.flush();
+            }
+        }
+        // display
+        snprintf(buf, 1000, "%d / %d", nLines, nFloats / 2);
+        this->ui->lbNumColinearLinesAndPoints->setText(buf);
+        this->ui->lbNumColinearLinesAndPoints->setStyleSheet("color: black;");
+    }
+    return;
+    // ---------------------------------------------------------
     // convert entire string into strings
     std::stringstream streamFullText(fullText);
-    std::vector<string> strings;
+    std::vector<std::string> strings;
     if (fullText.length() > 0) {
         std::string thisLine;
 //        while(std::getline(streamFullText, thisLine, '\n'))
@@ -361,7 +409,7 @@ void UserPointCalibrationDialog::on_edColinearImgPoints_textChanged()
     // each string in strings (vector<string>) represents a line of text, which
     // represents multiple colinear points of a straight line.
     //
-    nLines = strings.size();
+    nLines = (int) strings.size();
     this->uColinearImgPoints.clear();
     this->uColinearImgPoints.resize(nLines);
     bool somethingWrong = false;
@@ -400,7 +448,7 @@ void UserPointCalibrationDialog::on_edColinearImgPoints_textChanged()
             break;
         }
         // check there are at least three points of this straight line
-        int nPointsThisLine = colinearPointsThisLine.size();
+        int nPointsThisLine = (int) colinearPointsThisLine.size();
         if (nPointsThisLine < 3) {
             somethingWrong = true;
             snprintf(buf, 1000, "ERR@ line %d", i + 1);
@@ -428,22 +476,6 @@ void UserPointCalibrationDialog::on_edColinearImgPoints_textChanged()
     }
 
 }
-
-double calibrateCameraSingleImage(
-        const cv::Mat & objPoints,
-        const cv::Mat & imgPoints,
-        const cv::Mat & colinearPoints,
-        cv::Size        imgSize,
-              cv::Mat & cmat,
-              cv::Mat & dvec,
-              cv::Mat & rvec,
-              cv::Mat & tvec,
-              cv::Mat & stdDeviationsIntrinsics,
-              cv::Mat & stdDeviationsExtrinsics,
-              cv::Mat & perViewErrors,
-                  int   flags = 0,
-              cv::TermCriteria criteria = cv::TermCriteria(
-                   cv::TermCriteria::COUNT+cv::TermCriteria::EPS, 30, DBL_EPSILON));
 
 void UserPointCalibrationDialog::getIntrinsicFromUi()
 {
@@ -657,7 +689,7 @@ void UserPointCalibrationDialog::displayProjectionToUi()
     this->getValidObjImgPointsAndMappings(this->uGlobalPoints, this->uImgPoints,
                                     validGlobalPoints, validPrjPoints,
                                     validToAll, allToValid);
-    nValidPoints = validToAll.size();
+    nValidPoints = (int) validToAll.size();
 //    // create Mats which have only valid global images and image points
 //    validGlobalPoints = cv::Mat::zeros(1, nValidPoints, CV_32FC3);
 //    validPrjPoints = cv::Mat::zeros(1, nValidPoints, CV_32FC2);
@@ -772,7 +804,7 @@ void UserPointCalibrationDialog::on_pbCalibrate_clicked()
     getValidObjImgPointsAndMappings(this->uGlobalPoints, this->uImgPoints,
                                     validGlobalPoints, validImgPoints,
                                     validToAll, allToValid);
-    nValidPoints = validToAll.size();
+    nValidPoints = (int) validToAll.size();
 
     // get image size
     imgSize = this->imgSize;
@@ -796,7 +828,7 @@ void UserPointCalibrationDialog::on_pbCalibrate_clicked()
     double rms =
     calibrateCameraSingleImage(validGlobalPoints,
                                validImgPoints,
-                               colinearPoints,
+                               this->uColinearImgPoints,
                                imgSize,
                                this->cmat,
                                this->dvec,
@@ -939,3 +971,22 @@ void UserPointCalibrationDialog::on_pbUndistort_clicked()
 }
 
 
+
+void UserPointCalibrationDialog::on_pbSave_clicked()
+{
+    //
+    QString Qfilepath = QFileDialog::getSaveFileName(
+                this,
+                tr("Save camera parameters to XML file"),
+                "./",
+                tr("XML Files (*.xml)"));
+    std::string retStringSaveCalib =
+            saveCalibrationToFile(
+                this->imgSize,
+                this->cmat,
+                this->dvec,
+                this->rvec,
+                this->tvec,
+                Qfilepath.toStdString());
+    return;
+}

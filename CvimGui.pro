@@ -23,9 +23,10 @@ SOURCES += \
     draw.cpp \
     enhancedCorrelationWithReference.cpp \
     generalConstrained3dPosition_newton.cpp \
-    imCalibrateCameraSingleImage.cpp \
-    impro_fileIO.cpp \
-    impro_strings.cpp \
+    improCalib.cpp \
+    improFileIO.cpp \
+    improMath.cpp \
+    improStrings.cpp \
     impro_util.cpp \
     main.cpp \
     matchTemplateWithRot.cpp \
@@ -55,8 +56,10 @@ HEADERS += \
     cvimUtilQt.h \
     draw.h \
     enhancedCorrelationWithReference.h \
-    impro_fileIO.h \
-    impro_strings.h \
+    improCalib.h \
+    improFileIO.h \
+    improMath.h \
+    improStrings.h \
     impro_util.h \
     impro_util.h \
     matchTemplateWithRot.h \

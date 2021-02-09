@@ -78,6 +78,8 @@ private slots:
 
 
 
+    void on_pbSave_clicked();
+
 private:
     Ui::UserPointCalibrationDialog *ui;
 };

@@ -10,8 +10,8 @@
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
+    QApplication qapp(argc, argv);
     CvimMainWindow w;
     w.show();
-    return a.exec();
+    return qapp.exec();
 }

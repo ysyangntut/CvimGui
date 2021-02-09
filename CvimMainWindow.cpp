@@ -25,3 +25,4 @@ void CvimMainWindow::on_action_Camera_Add_ByUserPointCalibrationDialog_triggered
     calibDialog.exec();
     return;
 }
+

@@ -19,7 +19,7 @@
 #include <FileSeq.h>
 #include <impro_util.h>
 #include <pickAPoint.h>
-#include <cvimCalibration.h>
+#include <improCalib.h>
 #include <enhancedCorrelationWithReference.h>
 
 class CvimProject
@@ -244,7 +244,7 @@ public:
         bool showGuessImg = true;
         bool showFoundImg = true;
         bool printInfo = true;
-        int nTargets = targets.size();
+        int nTargets = (int) targets.size();
         int nSteps = fileSeq.num_files();
         int nDofs = dispOfTargets[0].cols;
         // Start running loops of nSteps and nTargets
